@@ -43,7 +43,6 @@ pip install -r requirements.txt
 
 2. Start Agent B (in one terminal):
 ```bash
-cd a2a-example
 python agent_b.py
 ```
 
@@ -90,7 +89,6 @@ export OPENAI_API_KEY="your-api-key-here"
 
 3. Start the MCP server (in one terminal):
 ```bash
-cd mcp-example
 python mcp_sse_server.py
 ```
 
