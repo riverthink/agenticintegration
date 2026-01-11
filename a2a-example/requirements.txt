@@ -1,0 +1,5 @@
+a2a-sdk
+langgraph
+langchain-core
+httpx
+uvicorn
