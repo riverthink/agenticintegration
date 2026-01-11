@@ -1,0 +1,39 @@
+sequenceDiagram
+    participant U as User (curl)
+    box AGENT_A
+        participant A as Agent A (http://localhost:9999)
+        participant GA as LangGraph workflow (A)
+        participant CF as ClientFactory
+    end
+    box  AGENT_B
+        participant B as Agent B (http://localhost:9998)
+        participant GB as LangGraph workflow (B)
+    end
+
+
+
+    U->>A: POST message/send with user text (step 3)
+    activate A
+    A->>GA: graph.ainvoke()
+    activate GA
+    GA->>CF: Connect to AgentB endpoint
+    rect rgb(255, 200, 200)
+        CF->>B: GET /.well-known/agent.json
+        B-->>CF: AgentB card
+    end
+    rect rgb(255, 200, 200)
+        CF->>B: POST message/send forwarding user text
+    end
+    activate B
+    B->>GB: graph.ainvoke() in execute()
+    GB-->>GB: Execute LangGraph
+    GB-->>B: Response from AgentB processing
+    rect rgb(255, 200, 200)
+        B-->>CF: SendMessageSuccessResponse with result text
+    end
+    CF-->>GA: SendMessageSuccessResponse with result text
+    deactivate B
+    GA-->>A: Response from AgentB via ClientFactory
+    deactivate GA
+    A-->>U: Response from AgentB via AgentB
+    deactivate A

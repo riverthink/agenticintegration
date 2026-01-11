@@ -1,0 +1,49 @@
+sequenceDiagram
+    participant U as User (curl)
+    box "#e6ffe6" Agent A (green)
+        participant A as Agent A (http://localhost:9999)
+        participant T as Agent A InMemoryTaskStore
+        participant QA as Agent A EventQueue SSE
+        participant GA as LangGraph workflow (A)
+        participant CF as ClientFactory
+    end
+    box "#e7f0ff" Agent B (blue)
+        participant B as Agent B (http://localhost:9998)
+        participant QB as EventQueue (B SSE)
+        participant GB as LangGraph workflow (B)
+    end
+
+    Note over A,GA: On startup: graph = create_graph()<br/>(a2a_example.py:38-51)
+    Note over B,GB: On startup: graph = create_graph()<br/>(agent_b.py:13-23)
+
+    U->>A: POST message/send ("Hello from curl!")
+    activate A
+    A->>T: Persist task metadata
+    A-->>QA: Enqueue "working" event (non-blocking)
+    A->>GA: graph.ainvoke() in execute()<br/>(a2a_example.py:56)
+    activate GA
+    Note over GA: LangGraph "process" node starts<br/>(a2a_example.py:39-42)
+    GA->>CF: Resolve Agent B card<br/>(via call_agent_b in workflow)
+    CF->>B: GET /.well-known/agent.json
+    B-->>CF: AgentB card
+    CF->>B: POST message/send with user text (await response)
+    activate B
+    B-->>QB: Enqueue status/progress events (SSE) e.g. {"status":"processing"}
+    B->>GB: graph.ainvoke() in execute()<br/>(agent_b.py:28)
+    activate GB
+    Note over GB: LangGraph "process" node<br/>(agent_b.py:15-17)
+    GB-->>B: AIMessage "LangGraph: Hello from curl!"
+    deactivate GB
+    B-->>CF: SendMessageSuccessResponse parts[0].text="LangGraph: Hello from curl!"
+    CF-->>GA: SendMessageSuccessResponse parts[0].text="LangGraph: Hello from curl!"
+    deactivate B
+    Note over GA: Build AIMessage with result<br/>"A got: LangGraph: Hello from curl!"
+    GA-->>A: AIMessage "A got: LangGraph: Hello from curl!"
+    deactivate GA
+    A-->>QA: Enqueue result event with final text
+    QA-->>U: SSE emits events (working/status/result) as available
+    A-->>U: Final response "A got: LangGraph: Hello from curl!"
+    deactivate A
+
+    Note over U,QA: message/stream uses SSE to flush events without waiting for full task completion.
+    Note over B,QB: Agent B can stream intermediate statuses while workflow runs.

@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant U as User
+    participant C as test_mcp_client
+    participant L as LLM (ChatOpenAI)
+    participant S as MCP Server
+
+    U->>S: Start MCP HTTP Server (uvicorn on http://127.0.0.1:8000/sse)
+    U->>C: Run test_mcp_client.py
+    C->>S: Connect to MCP Server via sse_client
+    S-->>C: SSE channel ready
+    C->>S: List the tool available from the MCP Server
+    S-->>C: Send the tool specs back
+
+    U->>C: Enter user request
+    C->>L: Send prompt containing tool specs + user request
+    L-->>C: Return appropriate tool {"tool": "...", "arguments": {...}}
+
+    C->>S: Call appropriate tool(tool, arguments)
+    S-->>C: Tool result
+    C-->>U: Print result
