@@ -48,7 +48,6 @@ python agent_b.py
 
 3. Start Agent A (in another terminal):
 ```bash
-cd a2a-example
 python agent_a.py
 ```
 
@@ -94,7 +93,6 @@ python mcp_sse_server.py
 
 4. Run the client (in another terminal):
 ```bash
-cd mcp-example
 python test_mcp_client.py
 ```
 
