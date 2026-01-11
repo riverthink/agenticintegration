@@ -37,7 +37,8 @@ The A2A example demonstrates how two agents can communicate using the Agent-to-A
 
 1. Install dependencies:
 ```bash
-pip install a2a-sdk langgraph langchain-core httpx uvicorn
+cd a2a-example
+pip install -r requirements.txt
 ```
 
 2. Start Agent B (in one terminal):
@@ -78,7 +79,8 @@ The MCP example demonstrates how to create a tool server and have an LLM-powered
 
 1. Install dependencies:
 ```bash
-pip install mcp fastmcp langchain-openai uvicorn anyio
+cd mcp-example
+pip install -r requirements.txt
 ```
 
 2. Set your OpenAI API key:
